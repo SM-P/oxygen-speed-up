@@ -6,9 +6,21 @@ namespace oxygine
     template<class T>
     class intrusive_list
     {
+    private:
+        int count;
     public:
         T _first;
         T _last;
+        
+        intrusive_list(){
+            count = 0;
+        }
+        
+        int getCount()
+        {
+            return count;
+        }
+        
 
         ~intrusive_list()
         {
@@ -36,6 +48,7 @@ namespace oxygine
             }
             _first = 0;
             _last = 0;
+            count = 0;
         }
 
         void insert_after(T& child, T& after)
@@ -52,7 +65,7 @@ namespace oxygine
             child->_prev = after;
             after->_next = child;
 
-
+            count++;
             checkList();
         }
 
@@ -69,7 +82,7 @@ namespace oxygine
             child->_next = before;
             before->_prev = child;
 
-
+            count++;
             checkList();
         }
 
@@ -90,7 +103,8 @@ namespace oxygine
 
             _last = child;
             child->_next = 0;
-
+            
+            count++;
             checkList();
         }
 
@@ -112,6 +126,7 @@ namespace oxygine
             _first = child;
             child->_prev = 0;
 
+            count++;
             checkList();
         }
 
@@ -175,6 +190,7 @@ namespace oxygine
             child->_prev = 0;
             child->_next = 0;
 
+            count--;
             checkList();
         }
     };

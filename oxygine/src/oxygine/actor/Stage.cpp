@@ -175,8 +175,13 @@ namespace oxygine
     {
         timeMS t = getTimeMS();
         UpdateState us;
+        logs::message("\n new iteration of stage updates: \n");
+        
+
+        
         Actor::update(us);
 
         _statUpdate = getTimeMS() - t;
+        logs::message("statUpdate: %d", _statUpdate);
     }
 }

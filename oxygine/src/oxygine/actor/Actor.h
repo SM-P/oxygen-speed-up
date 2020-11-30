@@ -250,6 +250,7 @@ namespace oxygine
         /**remove all tweens and call Tween::complete to them if callComplete == true*/
         void removeTweens(bool callComplete = false);
 
+        static void* callLinkUpdate(void* threadArg);
         /**Updates this actor, children and all tweens.*/
         virtual void update(const UpdateState& us);
         /**Renders this actor and children.*/
