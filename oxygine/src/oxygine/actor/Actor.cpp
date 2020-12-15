@@ -7,6 +7,7 @@
 #include "../tween/Tween.h"
 #include <sstream>
 #include <typeinfo>
+#include "pthread.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -1035,6 +1036,46 @@ namespace oxygine
             parent->removeChild(this);
         return parent;
     }
+    
+    struct vector_data{
+        const UpdateState* us;
+        std::vector<spActor>* records;
+        int threadid;
+        int start;
+        int end;
+    };
+
+    void* Actor::callVectorUpdate(void *threadArg) {
+        struct vector_data *my_data;
+        my_data = (struct vector_data*) threadArg;
+        const UpdateState* us = my_data->us;
+        std::vector<spActor>* records = my_data->records;
+        int threadid = my_data->threadid;
+        int start = my_data->start;
+        int end = my_data->end;
+//        logs::message("process %d with start %d and end %d\n", threadid, start, end);
+        for(int i=start; i<end; i++){
+//            logs::message("process %d process actor %d\n", threadid, i);
+            (*records)[i]->update(*us);
+        }
+        pthread_exit(NULL);
+    }
+
+    void Actor::callVectorUpdate1(void *threadArg) {
+        struct vector_data *my_data;
+        my_data = (struct vector_data*) threadArg;
+        const UpdateState* us = my_data->us;
+        std::vector<spActor>* records = my_data->records;
+        int threadid = my_data->threadid;
+        int start = my_data->start;
+        int end = my_data->end;
+        //        logs::message("process %d with start %d and end %d\n", threadid, start, end);
+        for(int i=start; i<end; i++){
+        //            logs::message("process %d process actor %d\n", threadid, i);
+            (*records)[i]->update(*us);
+        }
+    }
+
 
     void Actor::internalUpdate(const UpdateState& us)
     {
@@ -1054,17 +1095,62 @@ namespace oxygine
             _cbDoUpdate(us);
         doUpdate(us);
 
+        std::vector<spActor> records;
         spActor actor = _children._first;
-        while (actor)
-        {
-            spActor next = actor->_next;
-            if (actor->getParent())
-                actor->update(us);
-            if (!next)
-            {
-                //OX_ASSERT(actor == _children._last);
+
+        while (actor){
+            records.push_back(actor);
+            actor = actor->_next;
+        }
+
+        if (records.size() >= 10){
+//            logs::message("Using multithread\n");
+            int threadNum = 3;
+            pthread_t threads[threadNum];
+            struct vector_data td[threadNum];
+            int nums = (int)records.size()/threadNum;
+            for(int i=0; i<threadNum; i++){
+                td[i].us = &us;
+                td[i].threadid = i;
+                td[i].start = i*nums;
+                if(i == threadNum-1){
+                    td[i].end = (int)records.size();
+                }
+                else{
+                    td[i].end = (i+1)*nums;
+                }
+//                logs::message("creating thread %d with start %d and end %d\n", td[i].threadid, td[i].start, td[i].end);
+                td[i].records = &records;
+                if (i == threadNum-1){
+                    callVectorUpdate1((void* )&td[i]);
+                }
+                else{
+                    int ret = pthread_create(&threads[i], NULL, &Actor::callVectorUpdate, (void* )&td[i]);
+                    if (ret != 0){
+                        logs::message("pthread create occurs error!\n");
+                        exit(-1);
+                    }
+                }
+
             }
-            actor = next;
+            void* status;
+            for(int i=0; i<threadNum-1; i++){
+                int ret = pthread_join(threads[i], &status);
+                if (ret) {
+                    logs::message("pthread joining occur error!\n");
+                    exit(-1);
+                }
+            }
+        }
+        else {
+            actor = _children._first;
+            while (actor)
+            {
+                spActor next = actor->_next;
+                if (actor->getParent())
+                    actor->update(us);
+                actor = next;
+            }
         }
     }
 

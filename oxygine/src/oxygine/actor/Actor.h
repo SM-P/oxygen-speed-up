@@ -251,6 +251,9 @@ namespace oxygine
         void removeTweens(bool callComplete = false);
 
         /**Updates this actor, children and all tweens.*/
+        
+        static void* callVectorUpdate(void* threadArg);
+        void callVectorUpdate1(void* threadArg);
         virtual void update(const UpdateState& us);
         /**Renders this actor and children.*/
         virtual void render(const RenderState& rs);
