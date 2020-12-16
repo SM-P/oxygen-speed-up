@@ -18,6 +18,33 @@ namespace oxygine
 {
     STDRenderDelegate* STDRenderDelegate::instance = 0;
 
+#if defined(ADRIEN)
+    void STDRenderDelegate::renderBeforeThreaded(Actor* parent, const RenderState& parentRS, bool updateCopy)
+    {
+        //Note: Order in Actors list is [content, contentCopy, UI]
+
+        RenderState rs;
+        if (!parent->internalRender(rs, parentRS))
+            return;
+
+        Actor* actor = parent->getFirstChild().get(); 
+        int index = 0;
+
+        while (actor)
+        {   
+            if((index == 0 && updateCopy) || (index == 1 && !updateCopy) || (index >= 2))
+            {
+                //std::cout << "Render " << actor->getChildrenCount() << " children" << std::endl;
+                OX_ASSERT(actor->getParent());
+                actor->render(rs);
+            }
+
+            actor = actor->getNextSibling().get();
+            index++;
+        }
+    }
+#endif
+
     void RenderDelegate::render(Actor* parent, const RenderState& parentRS)
     {
         RenderState rs;

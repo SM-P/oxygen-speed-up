@@ -10,6 +10,10 @@
 #include "SDL.h"
 #endif
 
+#if defined(ADRIEN)
+#include<iostream>
+#endif
+
 namespace oxygine
 {
     spStage Stage::instance;
@@ -175,6 +179,10 @@ namespace oxygine
     {
         timeMS t = getTimeMS();
         UpdateState us;
+
+#if defined(ADRIEN)
+        //std::cout << "Stage children = " << getChildrenCount() << std::endl;
+#endif
         Actor::update(us);
 
         _statUpdate = getTimeMS() - t;

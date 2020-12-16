@@ -5,11 +5,17 @@
 using namespace oxygine;
 using namespace std;
 
+#define ADRIEN
+
+#if defined(ADRIEN)
+#include <iostream>
+#endif
 
 spTextField createText(const std::string& txt);
 spButton createButtonHelper(spButton, const std::string& txt, EventCallback cb);
 
 DECLARE_SMART(Test, spTest);
+
 class Test: public Actor
 {
 public:
@@ -40,6 +46,14 @@ public:
 
     void notify(string text, int time = 400);
 
+#if defined(ADRIEN)
+    static bool updateCopy;
+    static bool getUpdateCopy();
+    static void swapUpdateCopy();
+    virtual void update(const UpdateState& us) override;
+    virtual void render(const RenderState& rs) override;
+#endif
+
 protected:
     void notifyDone(Event* ev);
     void _clicked(Event* event);
@@ -50,6 +64,9 @@ protected:
     Color _txtColor;
 
     spActor _content;
+#if defined(ADRIEN)
+    spActor _contentCopy;
+#endif
     spActor _ui;
 
     float _x;

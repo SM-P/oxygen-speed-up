@@ -1,6 +1,8 @@
 #pragma once
 #include "oxygine-include.h"
 
+#define ADRIEN
+
 namespace oxygine
 {
     class RenderDelegate
@@ -16,6 +18,9 @@ namespace oxygine
         virtual void doRender(ColorRectSprite*, const RenderState& rs) {}
         virtual void doRender(ProgressBar*, const RenderState& rs) {}
 
+#if defined(ADRIEN)
+        virtual void renderBeforeThreaded(Actor* parent, const RenderState& parentRS, bool updateCopy) {}
+#endif
         static void setCurrent(void*) {}
     };
 }

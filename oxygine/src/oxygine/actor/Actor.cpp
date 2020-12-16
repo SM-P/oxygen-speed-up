@@ -42,7 +42,37 @@ namespace oxygine
         _transform.identity();
         _transformInvert.identity();
         _pressedOvered = 0;
+#if defined(ADRIEN)
+        firstUpdate = true;
+#endif
     }
+
+#if defined(ADRIEN)
+    int Actor::getChildrenCount()
+    {
+        int childrenCount = 0;
+        spActor actor = _children._first;
+        while (actor)
+        {
+            spActor next = actor->_next;
+            actor = next;
+            childrenCount++;
+        }
+        return childrenCount;
+    }
+
+    int Actor::getTweensCount()
+    {
+        int tweensCount = 0;
+        spTween t = _tweens._first;
+        while (t)
+        {
+            t = t->getNextSibling();
+            tweensCount++;
+        }
+        return tweensCount;
+    }
+#endif
 
     void Actor::copyFrom(const Actor& src, cloneOptions opt)
     {
@@ -1669,4 +1699,124 @@ namespace oxygine
 
         return false;
     }
+
+#if defined(ADRIEN)
+    void Actor::internalUpdateBeforeThreaded(const UpdateState& us, bool updateCopy)
+    {
+        //Note: Order in Actors list is [content, contentCopy, UI]
+        
+        spTween tween = _tweens._first;
+        while (tween)
+        {
+            spTween tweenNext = tween->getNextSibling();
+
+            if (tween->getParentList())
+                tween->update(*this, us);
+            if (tween->isDone() && tween->getParentList())
+                _tweens.remove(tween);
+            tween = tweenNext;
+        }
+
+        if (_cbDoUpdate)
+            _cbDoUpdate(us);
+        doUpdate(us);
+
+        spActor actor = _children._first;
+        int index = 0;
+
+        while (actor)
+        {
+            spActor next = actor->_next;
+            if((index == 0 && !updateCopy) || (index == 1 && updateCopy))
+            {
+                UpdateState two_us = us;
+                
+                if(firstUpdate)
+                {
+                    firstUpdate = false;
+                }
+                else
+                {
+                    two_us.dt = (timeMS) (us.dt * 2);
+                    two_us.dtf = us.dtf * 2.0f;
+                }
+
+                if (actor->getParent())
+                    actor->updateBeforeThreaded(two_us);
+            }
+            else if (index >= 2)
+            {
+                if (actor->getParent())
+                    actor->updateBeforeThreaded(us);
+            }
+
+            actor = next;
+            index++;
+        }
+    }
+
+
+    void Actor::updateBeforeThreaded(const UpdateState& parentUS)
+    {
+        UpdateState us = parentUS;
+        if (_clock)
+        {
+            us.iteration = 0;
+            _clock->update();
+
+            float dt = _clock->doTickF();
+            while (dt > 0.0f)
+            {
+                us.dt = (timeMS)(dt * 1000);
+                us.dtf = dt;
+                us.time = _clock->getTime();
+                us.timef = _clock->getTimeF();
+
+                internalUpdateThreaded(us);
+
+                dt = _clock->doTickF();
+                us.iteration += 1;
+            }
+        }
+        else
+        {
+            internalUpdateThreaded(us);
+        }
+
+    }
+
+    void Actor::internalUpdateThreaded(const UpdateState& us)
+    {
+        //std::cout << "Threaded Update: " << getChildrenCount() << " children -- " << getTweensCount() << " tweens" << std::endl; 
+        spTween tween = _tweens._first;
+        while (tween)
+        {
+            spTween tweenNext = tween->getNextSibling();
+
+            if (tween->getParentList())
+                tween->update(*this, us);
+            if (tween->isDone() && tween->getParentList())
+                _tweens.remove(tween);
+            tween = tweenNext;
+        }
+
+        if (_cbDoUpdate)
+            _cbDoUpdate(us);
+        doUpdate(us);
+
+        spActor actor = _children._first;
+        while (actor)
+        {
+            spActor next = actor->_next;
+            if (actor->getParent())
+                actor->update(us);
+            if (!next)
+            {
+                //OX_ASSERT(actor == _children._last);
+            }
+            actor = next;
+        }
+    }
+#endif
+
 }

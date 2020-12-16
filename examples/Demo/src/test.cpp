@@ -8,6 +8,10 @@ static const unsigned char system_data[] = { 0x50, 0x4b, 0x03, 0x04, 0x14, 0x00,
 Resources Test::_resources;
 spTest Test::instance;
 
+#if defined(ADRIEN)
+bool Test::updateCopy = false;
+#endif
+
 void Test::init()
 {
     key::init();
@@ -104,7 +108,16 @@ Test::Test() : _color(Color::White), _txtColor(72, 61, 139, 255)
     _content = new Actor;
     _content->setSize(getSize());
 
+#if defined(ADRIEN)
+    _contentCopy = new Actor;
+    _contentCopy->setSize(getSize());
+    updateCopy = false;
+#endif
+
     addChild(_content);
+#if defined(ADRIEN)
+    addChild(_contentCopy);
+#endif
     addChild(_ui);
 
     if (instance)
@@ -259,3 +272,62 @@ void Test::notifyDone(Event* ev)
     size_t N = size_t(ev->target->getUserData());
     _notifies[N] -= 1;
 }
+
+#if defined(ADRIEN)
+
+void Test::swapUpdateCopy()
+{
+	//Switch it up right here
+	if(updateCopy)
+	{
+		updateCopy = false;
+	}
+	else
+	{
+		updateCopy = true;
+	}
+}
+
+bool Test::getUpdateCopy()
+{
+	return updateCopy;
+}
+
+void Test::update(const UpdateState& parentUS)
+{
+	//std::cout << "Test Children = " << getChildrenCount() << std::endl;
+
+    UpdateState us = parentUS;
+    if (_clock)
+    {
+        us.iteration = 0;
+        _clock->update();
+
+        float dt = _clock->doTickF();
+        while (dt > 0.0f)
+        {
+            us.dt = (timeMS)(dt * 1000);
+            us.dtf = dt;
+            us.time = _clock->getTime();
+            us.timef = _clock->getTimeF();
+
+            internalUpdateBeforeThreaded(us, updateCopy);
+
+            dt = _clock->doTickF();
+            us.iteration += 1;
+        }
+    }
+    else
+    {
+        internalUpdateBeforeThreaded(us, updateCopy);
+    }
+
+}
+
+void Test::render(const RenderState& parentRS)
+{
+	//std::cout << "Render Children = " << getChildrenCount() << std::endl;
+	getRenderDelegate()->renderBeforeThreaded(this, parentRS, updateCopy);
+}
+
+#endif

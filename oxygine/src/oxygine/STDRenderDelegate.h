@@ -3,6 +3,8 @@
 #include "RenderDelegate.h"
 #include "STDRenderer.h"
 
+#define ADRIEN
+
 namespace oxygine
 {
     DECLARE_SMART(STDRenderDelegate, spSTDRenderDelegate);
@@ -19,6 +21,9 @@ namespace oxygine
         void doRender(TextField*,       const RenderState& rs) override;
         void doRender(ColorRectSprite*, const RenderState& rs) override;
         void doRender(ProgressBar*,     const RenderState& rs) override;
+#if defined(ADRIEN)
+        void renderBeforeThreaded(Actor* parent, const RenderState& parentRS, bool updateCopy) override;
+#endif
 
 
     protected:

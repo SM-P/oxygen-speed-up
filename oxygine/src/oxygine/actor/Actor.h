@@ -11,6 +11,12 @@
 #include "../tween/Tween.h"
 #include "../utils/intrusive_list.h"
 
+#define ADRIEN
+
+#if defined(ADRIEN)
+#include <iostream>
+#endif
+
 namespace oxygine
 {
     class TweenOptions
@@ -302,6 +308,11 @@ namespace oxygine
 
         virtual bool getBounds(RectF&) const;
 
+#if defined (ADRIEN)
+        int getChildrenCount();
+        int getTweensCount();
+#endif
+
     protected:
 
         RenderDelegate* _rdelegate;
@@ -340,6 +351,13 @@ namespace oxygine
         void markTranformDirty();
         void updateTransform() const;
         void internalUpdate(const UpdateState& us);
+
+#if defined(ADRIEN)
+        void internalUpdateBeforeThreaded(const UpdateState& us, bool updateCopy);
+        void updateBeforeThreaded(const UpdateState& us);
+        void internalUpdateThreaded(const UpdateState& us);
+        bool firstUpdate;
+#endif
 
         /**doUpdate is virtual method for overloading in inherited classes. UpdateState struct has local time of Actor (relative to Clock) and delta time.*/
         virtual void doUpdate(const UpdateState& us);

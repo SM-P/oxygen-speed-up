@@ -9,9 +9,22 @@
 #include "ox/DebugActor.hpp"
 #include "example.h"
 
+#define ADRIEN
+
+#if defined(ADRIEN)
+#include "test.h"
+#include "pthread.h"
+#endif
 
 using namespace oxygine;
 
+#if defined(ADRIEN)
+void* threadStageUpdate(void* arg)
+{
+    getStage()->update();
+    pthread_exit(NULL);
+}
+#endif
 
 // This function is called each frame
 int mainloop()
@@ -24,19 +37,30 @@ int mainloop()
     // It gets passed to our example game implementation
     example_update();
 
+#if defined(ADRIEN)
+    pthread_t updateThread;
+    pthread_create(&updateThread, NULL, threadStageUpdate, NULL);
+#else
     // Update our stage
     // Update all actors. Actor::update will also be called for all its children
     getStage()->update();
+#endif
 
     if (core::beginRendering())
     {
         Color clearColor(32, 32, 32, 255);
         Rect viewport(Point(0, 0), core::getDisplaySize());
         // Render all actors inside the stage. Actor::render will also be called for all its children
+        //std::cout << "RENDER SCENE" << std::endl;
         getStage()->render(clearColor, viewport);
 
         core::swapDisplayBuffers();
     }
+
+#if defined(ADRIEN)
+    pthread_join(updateThread, NULL);
+    Test::swapUpdateCopy();
+#endif
 
     return done ? 1 : 0;
 }
@@ -88,9 +112,15 @@ void run()
     // This is the main game loop.
     while (1)
     {
+#if defined(ADRIEN)
+        timeMS t = getTimeMS();
+#endif
         int done = mainloop();
         if (done)
             break;
+#if defined(ADRIEN)
+        std::cout << getTimeMS() - t << " ms" << std::endl;
+#endif
     }
     /*
      If we get here, the user has requested the Application to terminate.
