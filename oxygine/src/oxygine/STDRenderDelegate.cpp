@@ -32,17 +32,92 @@ namespace oxygine
 
         while (actor)
         {   
-            if((index == 0 && updateCopy) || (index == 1 && !updateCopy) || (index >= 2))
+            if((index == 0 && updateCopy) || (index == 1 && !updateCopy))
             {
-                //std::cout << "Render " << actor->getChildrenCount() << " children" << std::endl;
                 OX_ASSERT(actor->getParent());
-                actor->render(rs);
+                actor->renderThreaded(rs);
+            }
+            else if (index >= 2)
+            {
+                OX_ASSERT(actor->getParent());
+                actor->render(rs);   
             }
 
             actor = actor->getNextSibling().get();
             index++;
         }
     }
+
+    struct threadRenderArgs
+    {
+        const RenderState* rs;
+        Actor* actor;
+        int renderCount;
+    };
+
+    void* threadRender(void* threadArgs)
+    {
+        struct threadRenderArgs* threadData = (struct threadRenderArgs*) threadArgs;
+
+        for(int i = 0; i < threadData->renderCount; i++)
+        {
+            threadData->actor->render(*(threadData->rs));
+            threadData->actor = threadData->actor->getNextSibling().get();
+        }
+    }
+
+    void STDRenderDelegate::renderThreaded(Actor* parent, const RenderState& parentRS)
+    {
+        RenderState rs;
+        if (!parent->internalRender(rs, parentRS))
+            return;
+
+        int numThreads = NUMTHREADS;
+        pthread_t renderThreads[numThreads];
+        threadRenderArgs argThreads[numThreads];
+
+        int childrenCount = parent->getChildrenCount();
+        int renderCount = childrenCount / numThreads;
+        Actor* startActors[numThreads];
+        
+        int cur = 0;
+        int tid = 0;
+        Actor* actor = parent->getFirstChild().get();
+        while(actor)
+        {
+            if((cur % renderCount) == 0)
+            {
+                startActors[tid] = actor;
+
+                if(tid == (numThreads-1))
+                    break;
+
+                tid++;
+            }
+
+            cur++;
+            actor = actor->getNextSibling().get();
+        }
+
+        for(int i = 0; i < numThreads; i++)
+        {
+            argThreads[i].rs = &rs;
+            argThreads[i].actor = startActors[i];
+            argThreads[i].renderCount = renderCount;
+
+            if(MULTITHREADED)
+                pthread_create(&renderThreads[i], NULL, threadRender, (void*) (&argThreads[i]));
+            else
+                threadRender((void*) (&argThreads[i]));     
+        }
+
+        for(int i = 0; i < numThreads; i++)
+        {
+            pthread_join(renderThreads[i], NULL);
+        }
+        
+    }
+
 #endif
 
     void RenderDelegate::render(Actor* parent, const RenderState& parentRS)
@@ -223,7 +298,6 @@ namespace oxygine
     {
         if (!sprite->getAnimFrame().getDiffuse().base)
             return;
-
 
         Color color = rs.getFinalColor(sprite->getColor());
 

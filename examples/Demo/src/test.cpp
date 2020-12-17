@@ -295,8 +295,6 @@ bool Test::getUpdateCopy()
 
 void Test::update(const UpdateState& parentUS)
 {
-	//std::cout << "Test Children = " << getChildrenCount() << std::endl;
-
     UpdateState us = parentUS;
     if (_clock)
     {
@@ -321,12 +319,10 @@ void Test::update(const UpdateState& parentUS)
     {
         internalUpdateBeforeThreaded(us, updateCopy);
     }
-
 }
 
 void Test::render(const RenderState& parentRS)
 {
-	//std::cout << "Render Children = " << getChildrenCount() << std::endl;
 	getRenderDelegate()->renderBeforeThreaded(this, parentRS, updateCopy);
 }
 

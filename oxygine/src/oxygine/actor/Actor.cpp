@@ -17,6 +17,10 @@
 #include "../RenderDelegate.h"
 #include "../math/OBBox.h"
 
+#if defined (ADRIEN)
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 namespace oxygine
 {
     CREATE_COPYCLONE_NEW(Actor);
@@ -1211,8 +1215,13 @@ namespace oxygine
             return false;
 
         //if (!_renderer->render(this, rs))
+#if defined(ADRIEN)
+        pthread_mutex_lock(&mutex);
         doRender(rs);
-
+        pthread_mutex_unlock(&mutex);
+#else
+        doRender(rs);
+#endif
         completeRender(rs);
         return true;
     }
@@ -1817,6 +1826,12 @@ namespace oxygine
             actor = next;
         }
     }
+
+    void Actor::renderThreaded(const RenderState& parentRS)
+    {
+        _rdelegate->renderThreaded(this, parentRS);
+    }
+
 #endif
 
 }

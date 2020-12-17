@@ -20,7 +20,9 @@ namespace oxygine
 
 #if defined(ADRIEN)
         virtual void renderBeforeThreaded(Actor* parent, const RenderState& parentRS, bool updateCopy) {}
+        virtual void renderThreaded(Actor* parent, const RenderState& parentRS) {}
 #endif
+        
         static void setCurrent(void*) {}
     };
 }

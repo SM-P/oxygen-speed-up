@@ -19,7 +19,7 @@ public:
         _tweenRot = false;
         _tweenScale = false;
         count = 0;
-        addButton("add", "add 25000");
+        addButton("add", "add 500");
         addButton("animate", "animate");
         addButton("scale0.01", "scale=0.01");
         addButton("scale0.2", "scale=0.2");
@@ -48,7 +48,7 @@ public:
     {
         if (id == "add")
         {
-            int a = 25000;
+            int a = 500;
             count += a;
             for (int i = 0; i < a; ++i)
             {
@@ -74,7 +74,7 @@ public:
             }
 
             char str[255];
-            safe_sprintf(str, "add 25000 (%d)", count);
+            safe_sprintf(str, "add 500 (%d)", count);
             updateText(id, str);
         }
         if (id == "scale0.01")

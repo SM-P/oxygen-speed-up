@@ -4,6 +4,8 @@
 #include "STDRenderer.h"
 
 #define ADRIEN
+#define MULTITHREADED false
+#define NUMTHREADS 1
 
 namespace oxygine
 {
@@ -23,6 +25,7 @@ namespace oxygine
         void doRender(ProgressBar*,     const RenderState& rs) override;
 #if defined(ADRIEN)
         void renderBeforeThreaded(Actor* parent, const RenderState& parentRS, bool updateCopy) override;
+        void renderThreaded(Actor* parent, const RenderState& parentRS);
 #endif
 
 

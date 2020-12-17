@@ -15,6 +15,7 @@
 
 #if defined(ADRIEN)
 #include <iostream>
+#include "pthread.h"
 #endif
 
 namespace oxygine
@@ -311,6 +312,7 @@ namespace oxygine
 #if defined (ADRIEN)
         int getChildrenCount();
         int getTweensCount();
+        void renderThreaded(const RenderState& rs);
 #endif
 
     protected:
