@@ -1215,13 +1215,8 @@ namespace oxygine
             return false;
 
         //if (!_renderer->render(this, rs))
-#if defined(ADRIEN)
-        pthread_mutex_lock(&mutex);
         doRender(rs);
-        pthread_mutex_unlock(&mutex);
-#else
-        doRender(rs);
-#endif
+        
         completeRender(rs);
         return true;
     }

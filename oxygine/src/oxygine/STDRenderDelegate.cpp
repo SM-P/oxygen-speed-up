@@ -64,6 +64,8 @@ namespace oxygine
             threadData->actor->render(*(threadData->rs));
             threadData->actor = threadData->actor->getNextSibling().get();
         }
+
+        pthread_exit(NULL);
     }
 
     void STDRenderDelegate::renderThreaded(Actor* parent, const RenderState& parentRS)
@@ -111,11 +113,13 @@ namespace oxygine
                 threadRender((void*) (&argThreads[i]));     
         }
 
-        for(int i = 0; i < numThreads; i++)
+        if(MULTITHREADED)
         {
-            pthread_join(renderThreads[i], NULL);
-        }
-        
+            for(int i = 0; i < numThreads; i++)
+            {
+                pthread_join(renderThreads[i], NULL);
+            }
+        }        
     }
 
 #endif

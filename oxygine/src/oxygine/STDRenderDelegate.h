@@ -4,7 +4,7 @@
 #include "STDRenderer.h"
 
 #define ADRIEN
-#define MULTITHREADED false
+#define MULTITHREADED 0
 #define NUMTHREADS 1
 
 namespace oxygine
