@@ -1101,16 +1101,8 @@ namespace oxygine
         // trial: use vector to store all the childrens
          
         int count = _children.getCount();
-        int counttemp = 0;
-        spActor current = _children._first;
-        while (current)
-        {
-            counttemp++;
-            current = current->_next;
-        }
-        assert(count == counttemp);
 
-         if (counttemp < 50){
+         if (count < 50){
             spActor actor = _children._first;
             while (actor)
             {
@@ -1124,7 +1116,7 @@ namespace oxygine
              int threadNum = 3;
              pthread_t threads[threadNum];
              struct link_data td[threadNum];
-             int nums = counttemp/threadNum;
+             int nums = count/threadNum;
              spActor actor = _children._first;
              int cur = 0;
              while (actor)
@@ -1135,7 +1127,7 @@ namespace oxygine
                      td[i].first = actor;
                      td[i].threadid = i;
                      if (i == threadNum-1) {
-                         td[i].count = counttemp - i*nums;
+                         td[i].count = count - i*nums;
                          break;
                      }
                      else {
