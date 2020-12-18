@@ -1,15 +1,29 @@
 #pragma once
 #include "../oxygine-include.h"
-
+#define BOWEN
 namespace oxygine
 {
     template<class T>
     class intrusive_list
     {
+#if defined(BOWEN)
+    private:
+            int count;
+#endif
+
     public:
         T _first;
         T _last;
 
+#if defined(BOWEN)
+        intrusive_list(){
+            count = 0;
+        }
+        
+        int getCount(){
+            return count;
+        }
+#endif
         ~intrusive_list()
         {
             clear();
@@ -36,6 +50,9 @@ namespace oxygine
             }
             _first = 0;
             _last = 0;
+#if defined(BOWEN)
+            count = 0;
+#endif
         }
 
         void insert_after(T& child, T& after)
@@ -52,7 +69,9 @@ namespace oxygine
             child->_prev = after;
             after->_next = child;
 
-
+#if defined(BOWEN)
+            count++;
+#endif
             checkList();
         }
 
@@ -69,7 +88,9 @@ namespace oxygine
             child->_next = before;
             before->_prev = child;
 
-
+#if defined(BOWEN)
+            count++;
+#endif
             checkList();
         }
 
@@ -91,6 +112,9 @@ namespace oxygine
             _last = child;
             child->_next = 0;
 
+#if defined(BOWEN)
+            count++;
+#endif
             checkList();
         }
 
@@ -112,6 +136,9 @@ namespace oxygine
             _first = child;
             child->_prev = 0;
 
+#if defined(BOWEN)
+            count++;
+#endif
             checkList();
         }
 
@@ -175,6 +202,9 @@ namespace oxygine
             child->_prev = 0;
             child->_next = 0;
 
+#if defined(BOWEN)
+            count--;
+#endif
             checkList();
         }
     };

@@ -12,6 +12,7 @@
 #include "../utils/intrusive_list.h"
 
 #define ADRIEN
+#define BOWEN
 
 #if defined(ADRIEN)
 #include <iostream>
@@ -257,6 +258,9 @@ namespace oxygine
         /**remove all tweens and call Tween::complete to them if callComplete == true*/
         void removeTweens(bool callComplete = false);
 
+#if defined(BOWEN)
+        static void* callLinkUpdate(void* threadArg);
+#endif
         /**Updates this actor, children and all tweens.*/
         virtual void update(const UpdateState& us);
         /**Renders this actor and children.*/

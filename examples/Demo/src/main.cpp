@@ -10,6 +10,7 @@
 #include "example.h"
 
 #define ADRIEN
+#define BOWEN
 
 #if defined(ADRIEN)
 #include "test.h"

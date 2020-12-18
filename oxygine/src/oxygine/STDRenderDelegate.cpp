@@ -64,6 +64,7 @@ namespace oxygine
             threadData->actor->render(*(threadData->rs));
             threadData->actor = threadData->actor->getNextSibling().get();
         }
+        pthread_exit(NULL);
     }
 
     void STDRenderDelegate::renderThreaded(Actor* parent, const RenderState& parentRS)

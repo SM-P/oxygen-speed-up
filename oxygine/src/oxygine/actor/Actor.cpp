@@ -1793,7 +1793,37 @@ namespace oxygine
         }
 
     }
+#if defined(BOWEN)
+struct link_data{
+    const UpdateState* us;
+    spActor first;
+    int count;
+    int threadid;
+};
 
+void* Actor::callLinkUpdate(void* threadArg) {
+    struct link_data *my_data;
+    my_data = (struct link_data* )threadArg;
+    const UpdateState* us = my_data->us;
+    spActor first = my_data->first;
+    int count = my_data->count;
+
+    int cur = 0;
+    while(first) {
+        if (cur == count){
+            break;
+        }
+        spActor next = first->_next;
+        if(first->getParent()){
+            first->update(*us);
+        }
+        first = next;
+        cur++;
+    }
+    pthread_exit(NULL);
+}
+
+#endif
     void Actor::internalUpdateThreaded(const UpdateState& us)
     {
         //std::cout << "Threaded Update: " << getChildrenCount() << " children -- " << getTweensCount() << " tweens" << std::endl; 
@@ -1813,6 +1843,50 @@ namespace oxygine
             _cbDoUpdate(us);
         doUpdate(us);
 
+#if defined(BOWEN)
+        int count = _children.getCount();
+        int threadNum = 3;
+         pthread_t threads[threadNum];
+         struct link_data td[threadNum];
+         int nums = count/threadNum;
+         spActor actor = _children._first;
+         int cur = 0;
+         while (actor)
+         {
+             if (cur % nums == 0){
+                 int i = cur/nums;
+                 td[i].us = &us;
+                 td[i].first = actor;
+                 td[i].threadid = i;
+                 if (i == threadNum-1) {
+                     td[i].count = count - i*nums;
+                     break;
+                 }
+                 else {
+                     td[i].count = nums;
+                 }
+             }
+             cur++;
+             actor = actor->_next;
+         }
+
+
+         for (int i=0; i < threadNum; i++) {
+             int ret = pthread_create(&threads[i], NULL, &Actor::callLinkUpdate, (void* )&td[i]);
+             if (ret != 0) {
+                 logs::message("pthread create occurs error!");
+                 exit(-1);
+             }
+         }
+        void *status;
+        for (int i=0; i < threadNum; i++){
+            int ret = pthread_join(threads[i], &status);
+            if (ret) {
+                logs::message("pthread joining occurs ERROR!\n");
+                exit(-1);
+            }
+        }
+#else
         spActor actor = _children._first;
         while (actor)
         {
@@ -1825,6 +1899,8 @@ namespace oxygine
             }
             actor = next;
         }
+#endif
+
     }
 
     void Actor::renderThreaded(const RenderState& parentRS)
