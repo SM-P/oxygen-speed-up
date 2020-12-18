@@ -5,7 +5,7 @@
 #include "../core/oxygine.h"
 #include "../math/Rect.h"
 #include <sstream>
-
+#include <iostream>
 #ifdef OXYGINE_SDL
 #include "SDL.h"
 #endif
@@ -175,10 +175,9 @@ namespace oxygine
     {
         timeMS t = getTimeMS();
         UpdateState us;
-        logs::message("\n new iteration of stage updates: \n");
         Actor::update(us);
 
         _statUpdate = getTimeMS() - t;
-        logs::message("statUpdate: %d", _statUpdate);
+        std::cout<<_statUpdate<<" ms"<<std::endl;
     }
 }
